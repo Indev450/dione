@@ -5,9 +5,8 @@ local STATUS_ERROR = "until you'll help me"
 local STATUS_UPDATE_INTERVAL = 5*1000
 
 local discordia = require("discordia")
-local discordia = require("discordia")
 local dcmd = require("discordia-slash")
-local dcmdtools = require("discordia-slash").util.tools()
+local dcmdtools = dcmd.util.tools()
 local timer = require("timer")
 
 local wrap = coroutine.wrap

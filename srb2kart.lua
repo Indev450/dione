@@ -1,8 +1,7 @@
-local core = require("core")
-
 local ASKINFO_TIMEOUT = 5
 local EXPIRED_TIMEOUT = ASKINFO_TIMEOUT*2 -- If we didn't get any info for this long time, consider server unavailable
 
+local core = require("core")
 local dgram = require("dgram")
 local protocols = require("./srb2kart-protocols")
 
