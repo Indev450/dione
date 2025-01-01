@@ -1,0 +1,3 @@
+[submodule "deps/discordia-slash"]
+	path = deps/discordia-slash
+	url = https://github.com/GitSparTV/discordia-slash
