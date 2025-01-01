@@ -50,7 +50,7 @@ function Protocol:initialize(socket, server)
 
         { "c32", "servername", },
         { "c8", "mapname", }, -- Something like MAP01
-        { "c33", "mapname", }, -- Something like Green Hills Zone
+        { "c33", "maptitle", }, -- Something like Green Hills Zone
         { "I1", "actnum", },
         { "I1", "iszone", },
 

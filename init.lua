@@ -7,64 +7,115 @@ local STATUS_ERROR = ":AAAAAAAAAAAA:" -- :AAAAAAAAAAAA:
 local STATUS_UPDATE_INTERVAL = 5*1000
 
 local discordia = require("discordia")
+local discordia = require("discordia")
 local dcmd = require("discordia-slash")
+local dcmdtools = require("discordia-slash").util.tools()
 local timer = require("timer")
-local p = require("pretty-print")
 
-local client = discordia.Client():useSlashCommands()
+local client = discordia.Client():useApplicationCommands()
 
 local SRB2Kart = require("./srb2kart.lua")
 
 local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.getenv("SRB2KART_PROTO") or "srb2kart-16p")
 
+-- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
+-- you can't do that from c function (which happens when using timer)
 local function updateStatus()
-    server:askInfo()
+    while true do
+        server:askInfo()
 
-    local numplayers = server.serverinfo.numplayers
+        local numplayers = server.serverinfo.numplayers
 
-    if server:isInfoExpired() then
-        client:setStatus("dnd")
-        client:setActivity({
-            name = STATUS_ERROR,
-            type = 0,
-        })
-    elseif numplayers == 0 then
-        client:setStatus("online")
-        client:setActivity({
-            name = STATUS_EMPTY,
-            type = 3,
-        })
-    else
-        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', server.serverinfo.gametype == 2 and "race" or "battle")
+        if server:isInfoExpired() then
+            client:setStatus(discordia.enums.status.doNotDisturb)
+            client:setActivity({
+                name = STATUS_ERROR,
+                type = discordia.enums.activityType.custom,
+            })
+        elseif numplayers == 0 then
+            client:setStatus(discordia.enums.status.online)
+            client:setActivity({
+                name = STATUS_EMPTY,
+                type = discordia.enums.activityType.watching,
+            })
+        else
+            local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', server.serverinfo.gametype == 2 and "race" or "battle")
 
-        --[[
-        for _, p in ipairs(server.playerinfo) do
-            if p.node ~= 255 then
-                print(p.name, p.team)
-            end
+            client:setStatus(discordia.enums.status.online)
+            client:setActivity({
+                name = text,
+                type = discordia.enums.activityType.watching,
+            })
         end
-        --]]
 
-        client:setStatus("online")
-        client:setActivity({
-            name = text,
-            type = 3,
-        })
+        --print("Status updated")
+
+        coroutine.yield() -- <- THIS IS NECESSARY!
     end
 end
 
 client:on("ready", function()
-    timer.setInterval(STATUS_UPDATE_INTERVAL, updateStatus)
+    timer.setInterval(STATUS_UPDATE_INTERVAL, coroutine.wrap(updateStatus))
 
-    client:slashCommand({
-        name = "players",
-        description = "Get player info"
-    })
+    local players = dcmdtools.slashCommand("players", "Get player info")
+
+    client:createGlobalApplicationCommand(players)
 end)
+
+-- Not 100% sure if this is necessary
+local function fixname(name)
+    local nterm = name:find('\000')
+
+    if nterm then
+        name = name:sub(1, nterm-1)
+    end
+
+    return name
+end
+
+local function joinnames(names, verb)
+    if #names == 0 then return "No one is "..verb end
+
+    local last = table.remove(names)
+
+    if #names == 0 then
+        return last.." is "..verb
+    else
+        return table.concat(names, ", ").." and "..last.." are "..verb
+    end
+end
 
 client:on("slashCommand", function(ia, cmd, args)
-    print(args)
+    if cmd.name == "players" then
+        local playing = {}
+        local spec = {}
+        local resp = ""
+        local verb = server.serverinfo.gametype == 2 and "racing" or "battling"
+        local map = fixname(server.serverinfo.maptitle or "Unknown")
+
+        for _, p in ipairs(server.playerinfo) do
+            if p.node ~= 255 then
+                table.insert(p.team == 0 and playing or spec, fixname(p.name))
+            end
+        end
+
+        -- This is ugly lol
+        if #playing == 0 then
+            if #spec == 0 then
+                resp = "No one is "..verb..", map is "..map.."."
+            else
+                resp = joinnames(spec, "watching").." at "..map.."."
+            end
+        else
+            if #spec == 0 then
+                resp = joinnames(playing, verb).." at "..map.."."
+            else
+                resp = joinnames(playing, verb)..", "..joinnames(spec, "watching").." at "..map.."."
+            end
+        end
+
+        ia:reply(resp)
+    end
 end)
 
-
-client:run(os.getenv("DISCORD_TOKEN") or error("DISCORD_TOKEN env variable is required"))
+client:run("Bot "..(os.getenv("DISCORD_TOKEN") or error("DISCORD_TOKEN env variable is required")))
