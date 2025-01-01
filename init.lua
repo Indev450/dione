@@ -12,6 +12,8 @@ local dcmd = require("discordia-slash")
 local dcmdtools = require("discordia-slash").util.tools()
 local timer = require("timer")
 
+local wrap = coroutine.wrap
+
 local client = discordia.Client():useApplicationCommands()
 
 local SRB2Kart = require("./srb2kart.lua")
@@ -21,45 +23,44 @@ local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.get
 -- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
 -- you can't do that from c function (which happens when using timer)
 local function updateStatus()
-    while true do
-        server:askInfo()
+    server:askInfo()
 
-        local numplayers = server.serverinfo.numplayers
+    local numplayers = server.serverinfo.numplayers
 
-        if server:isInfoExpired() then
-            client:setStatus(discordia.enums.status.doNotDisturb)
-            client:setActivity({
-                name = STATUS_ERROR,
-                type = discordia.enums.activityType.custom,
-            })
-        elseif numplayers == 0 then
-            client:setStatus(discordia.enums.status.online)
-            client:setActivity({
-                name = STATUS_EMPTY,
-                type = discordia.enums.activityType.watching,
-            })
-        else
-            local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', server.serverinfo.gametype == 2 and "race" or "battle")
+    if server:isInfoExpired() then
+        client:setStatus(discordia.enums.status.doNotDisturb)
+        client:setActivity({
+            name = STATUS_ERROR,
+            type = discordia.enums.activityType.watching,
+        })
+    elseif numplayers == 0 then
+        client:setStatus(discordia.enums.status.online)
+        client:setActivity({
+            name = STATUS_EMPTY,
+            type = discordia.enums.activityType.watching,
+        })
+    else
+        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', server.serverinfo.gametype == 2 and "race" or "battle")
 
-            client:setStatus(discordia.enums.status.online)
-            client:setActivity({
-                name = text,
-                type = discordia.enums.activityType.watching,
-            })
-        end
-
-        --print("Status updated")
-
-        coroutine.yield() -- <- THIS IS NECESSARY!
+        client:setStatus(discordia.enums.status.online)
+        client:setActivity({
+            name = text,
+            type = discordia.enums.activityType.watching,
+        })
     end
 end
 
 client:on("ready", function()
-    timer.setInterval(STATUS_UPDATE_INTERVAL, coroutine.wrap(updateStatus))
+    timer.setInterval(STATUS_UPDATE_INTERVAL, function() wrap(updateStatus)() end)
 
     local players = dcmdtools.slashCommand("players", "Get player info")
 
     client:createGlobalApplicationCommand(players)
+
+    wrap(function()
+        client:setStatus(discordia.enums.status.idle)
+        client:setActivity()
+    end)()
 end)
 
 -- Not 100% sure if this is necessary
