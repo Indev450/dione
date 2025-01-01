@@ -1,5 +1,3 @@
-local NAME = "SRB2Kart lua discord bot"
-
 local STATUS_PLAYERS = "%d player%s %s" -- Watches n player(s) race/battle
 local STATUS_EMPTY = "an empty map" -- Watches an empty map
 local STATUS_ERROR = ":AAAAAAAAAAAA:" -- :AAAAAAAAAAAA:

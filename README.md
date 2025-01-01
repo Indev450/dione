@@ -1,4 +1,4 @@
-# SRB2Kart Discord bot
+# SRB2Kart Dione - Discord bot
 
 A Discord bot for displaying SRB2Kart server status, written using `luvit`
 
@@ -9,8 +9,8 @@ Install luvit if you don't have it already (refer to https://luvit.io/install.ht
 Clone repository:
 
 ```sh
-git clone --recursive https://github.com/Indev450/lua-kart-discord
-cd lua-kart-discord
+git clone --recursive https://github.com/Indev450/dione
+cd dione
 ```
 
 Install dependencies:
