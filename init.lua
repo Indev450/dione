@@ -15,7 +15,7 @@ local client = discordia.Client():useApplicationCommands()
 
 local SRB2Kart = require("./srb2kart.lua")
 
-local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.getenv("SRB2KART_PROTO") or "srb2kart-16p")
+local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.getenv("SRB2KART_PROTO") or "srb2kart-16p", os.getenv("SRB2KART_GAMEMODEFILE"))
 
 -- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
 -- you can't do that from c function (which happens when using timer)
@@ -47,12 +47,33 @@ local function updateStatus()
     end
 end
 
+local function deleteUnsupportedCommands(supported)
+    for id, cmd in pairs(client:getGlobalApplicationCommands()) do
+        if not supported[cmd.name] then
+            client:deleteGlobalApplicationCommand(id)
+        end
+    end
+end
+
 client:on("ready", function()
     timer.setInterval(STATUS_UPDATE_INTERVAL, function() wrap(updateStatus)() end)
 
-    local players = dcmdtools.slashCommand("players", "Get player info")
+    local supported = {}
 
-    client:createGlobalApplicationCommand(players)
+    local function registerCmd(name, desc)
+        local cmd = dcmdtools.slashCommand(name, desc)
+        client:createGlobalApplicationCommand(cmd)
+        supported[name] = true
+    end
+
+    -- Is it fine that i create those each restart?
+    registerCmd("players", "Get player info")
+
+    if server.gamemodefile ~= nil then
+        registerCmd("gamemode", "Get current gamemode")
+    end
+
+    deleteUnsupportedCommands(supported)
 
     wrap(function()
         client:setStatus(discordia.enums.status.idle)
@@ -84,6 +105,11 @@ local function joinnames(names, verb)
 end
 
 client:on("slashCommand", function(ia, cmd, args)
+    if server:isInfoExpired() then
+        ia:reply("Server is currently unavailable.")
+        return
+    end
+
     if cmd.name == "players" then
         local playing = {}
         local spec = {}
@@ -113,6 +139,14 @@ client:on("slashCommand", function(ia, cmd, args)
         end
 
         ia:reply(resp)
+    elseif cmd.name == "gamemode" then
+        local gamemodes = server:getGamemodes()
+
+        if gamemodes == nil then
+            ia:reply("Unable to fetch gamemodes right now.")
+        else
+            ia:reply(string.format("Current gamemode%s: %s.", #gamemodes > 1 and "s are", " is", table.concat(gamemodes, ", ")))
+        end
     end
 end)
 

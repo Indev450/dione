@@ -7,7 +7,7 @@ local protocols = require("./srb2kart-protocols")
 
 local SRB2Kart = core.Emitter:extend()
 
-function SRB2Kart:initialize(addr, protocol)
+function SRB2Kart:initialize(addr, protocol, gamemodefile)
     local host = addr
     local port = 5029
 
@@ -23,6 +23,7 @@ function SRB2Kart:initialize(addr, protocol)
     self.socket = dgram.createSocket('upd4')
     self.socket:bind(0, "0.0.0.0")
     self.protocol = assert(protocols[protocol], "Protocol "..protocol.." does not exist"):new(self.socket, self)
+    self.gamemodefile = gamemodefile
 
     self.serverinfo = {
         numplayers = 0,
@@ -59,6 +60,26 @@ function SRB2Kart:askInfo()
     local buf = self.protocol:getAskInfoPacket()
 
     self.socket:send(buf, self.port, self.host)
+end
+
+function SRB2Kart:getGamemodes()
+    if self.gamemodefile == nil then return end
+
+    local file = io.open(self.gamemodefile)
+
+    if file == nil then return end
+
+    local gamemodes = {}
+
+    for line in file:lines() do
+        table.insert(gamemodes, line)
+    end
+
+    if #gamemodes == 0 then
+        gamemodes[1] = "vanilla"
+    end
+
+    return gamemodes
 end
 
 return SRB2Kart
