@@ -76,7 +76,7 @@ function SRB2Kart:getGamemodes()
     end
 
     if #gamemodes == 0 then
-        gamemodes[1] = "vanilla"
+        gamemodes[1] = "regular"
     end
 
     return gamemodes
