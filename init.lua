@@ -145,7 +145,7 @@ client:on("slashCommand", function(ia, cmd, args)
         if gamemodes == nil then
             ia:reply("Unable to fetch gamemodes right now.")
         else
-            ia:reply(string.format("Current gamemode%s: %s.", #gamemodes > 1 and "s are", " is", table.concat(gamemodes, ", ")))
+            ia:reply(string.format("Current gamemode%s: %s.", #gamemodes > 1 and "s are" or " is", table.concat(gamemodes, ", ")))
         end
     end
 end)
