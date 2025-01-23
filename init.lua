@@ -115,7 +115,17 @@ client:on("slashCommand", function(ia, cmd, args)
         local spec = {}
         local resp = ""
         local verb = server.serverinfo.gametype == 2 and "racing" or "battling"
-        local map = fixname(server.serverinfo.maptitle or "Unknown")
+
+        local map = "Unknown"
+
+        if server.serverinfo.maptitle then
+            map = fixname(server.serverinfo.maptitle):gsub('^%s*(.-)%s*$', '%1') -- Remove embedded zeros and trim the title
+
+            -- Append zone, if needed
+            if server.serverinfo.iszone ~= 0 then
+                map = map.." Zone"
+            end
+        end
 
         for _, p in ipairs(server.playerinfo) do
             if p.node ~= 255 then
