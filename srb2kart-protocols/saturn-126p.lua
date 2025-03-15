@@ -60,7 +60,7 @@ function Protocol:initialize(socket, server)
 
     self.playerinfo = RawPacket:new({
         { "I1", "node", },
-        { "c21", "name", },
+        { "c22", "name", },
         { "I4", "address", },
         { "I1", "team", },
         { "I2", "skin", },
