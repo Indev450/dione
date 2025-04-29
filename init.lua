@@ -2,6 +2,7 @@ local STATUS_PLAYERS = "%d player%s %s" -- Watches n player(s) race/battle
 local STATUS_EMPTY = "an empty map" -- Watches an empty map
 local STATUS_ERROR = "until you'll help me"
 local STATUS_GAMEMODE = os.getenv("SRB2KART_STATUS_GAMEMODE") -- If nil, chooses between "race" or "battle"
+local SLASHPLAYERS_GAMEMODE = os.getenv("SRB2KART_SLASHPLAYERS_GAMEMODE") -- If nil, chooses between "racing" or "battling"
 
 local STATUS_UPDATE_INTERVAL = 5*1000
 
@@ -24,6 +25,12 @@ local function getStatusGamemode(gametype)
     if STATUS_GAMEMODE then return STATUS_GAMEMODE end
 
     return gametype == 2 and "race" or "battle"
+end
+
+local function getSlashplayersGamemode(gametype)
+    if SLASHPLAYERS_GAMEMODE then return SLASHPLAYERS_GAMEMODE end
+
+    return gametype == 2 and "racing" or "battling"
 end
 
 -- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
@@ -123,7 +130,7 @@ client:on("slashCommand", function(ia, cmd, args)
         local playing = {}
         local spec = {}
         local resp = ""
-        local verb = server.serverinfo.gametype == 2 and "racing" or "battling"
+        local verb = getSlashplayersGamemode(server.serverinfo.gametype)
 
         local map = "Unknown"
 
