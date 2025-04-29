@@ -1,6 +1,7 @@
 local STATUS_PLAYERS = "%d player%s %s" -- Watches n player(s) race/battle
 local STATUS_EMPTY = "an empty map" -- Watches an empty map
 local STATUS_ERROR = "until you'll help me"
+local STATUS_GAMEMODE = os.getenv("SRB2KART_STATUS_GAMEMODE") -- If nil, chooses between "race" or "battle"
 
 local STATUS_UPDATE_INTERVAL = 5*1000
 
@@ -11,11 +12,19 @@ local timer = require("timer")
 
 local wrap = coroutine.wrap
 
-local client = discordia.Client():useApplicationCommands()
+local client = discordia.Client({
+    autoReconnect = tonumber(os.getenv("DISCORD_NOAUTORECONNECT") or "0") == 0,
+}):useApplicationCommands()
 
 local SRB2Kart = require("./srb2kart.lua")
 
 local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.getenv("SRB2KART_PROTO") or "srb2kart-16p", os.getenv("SRB2KART_GAMEMODEFILE"))
+
+local function getStatusGamemode(gametype)
+    if STATUS_GAMEMODE then return STATUS_GAMEMODE end
+
+    return gametype == 2 and "race" or "battle"
+end
 
 -- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
 -- you can't do that from c function (which happens when using timer)
@@ -37,7 +46,7 @@ local function updateStatus()
             type = discordia.enums.activityType.watching,
         })
     else
-        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', server.serverinfo.gametype == 2 and "race" or "battle")
+        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', getStatusGamemode(server.serverinfo.gametype))
 
         client:setStatus(discordia.enums.status.online)
         client:setActivity({
