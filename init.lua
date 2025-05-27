@@ -24,11 +24,26 @@ local server = SRB2Kart:new(os.getenv("SRB2KART_ADDRESS") or "127.0.0.1", os.get
 local function getStatusGamemode(gametype)
     if STATUS_GAMEMODE then return STATUS_GAMEMODE end
 
+    -- Special case for DRRR
+    if type(gametype) == "string" then return gametype:lower() end
+
     return gametype == 2 and "race" or "battle"
 end
 
 local function getSlashplayersGamemode(gametype)
     if SLASHPLAYERS_GAMEMODE then return SLASHPLAYERS_GAMEMODE end
+
+    -- Special case for DRRR
+    if type(gametype) == "string" then
+        -- Just so race and battle is consistent with kart
+        if gametype:find("Race") then
+            gametype = 2
+        elseif gametype:find("Battle") then
+            gametype = 0
+        else
+            return "playing "..gametype
+        end
+    end
 
     return gametype == 2 and "racing" or "battling"
 end
@@ -53,7 +68,7 @@ local function updateStatus()
             type = discordia.enums.activityType.watching,
         })
     else
-        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', getStatusGamemode(server.serverinfo.gametype))
+        local text = STATUS_PLAYERS:format(numplayers, numplayers > 1 and 's' or '', getStatusGamemode(server.serverinfo.gametype or server.serverinfo.gametypename))
 
         client:setStatus(discordia.enums.status.online)
         client:setActivity({
@@ -130,7 +145,7 @@ client:on("slashCommand", function(ia, cmd, args)
         local playing = {}
         local spec = {}
         local resp = ""
-        local verb = getSlashplayersGamemode(server.serverinfo.gametype)
+        local verb = getSlashplayersGamemode(server.serverinfo.gametype or server.serverinfo.gametypename)
 
         local map = "Unknown"
 
