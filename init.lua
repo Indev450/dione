@@ -41,7 +41,7 @@ local function getSlashplayersGamemode(gametype)
         elseif gametype:find("Battle") then
             gametype = 0
         else
-            return "playing "..gametype
+            return "playing "..gametype:lower()
         end
     end
 
