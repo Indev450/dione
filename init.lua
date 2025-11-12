@@ -49,6 +49,17 @@ local function getSlashplayersGamemode(gametype)
     return gametype == 2 and "racing" or "battling"
 end
 
+-- Not 100% sure if this is necessary
+local function fixname(name)
+    local nterm = name:find('\000')
+
+    if nterm then
+        name = name:sub(1, nterm-1)
+    end
+
+    return name
+end
+
 -- This prob should be done in better way. Have to use coroutine because setStatus yields and that causes error because
 -- you can't do that from c function (which happens when using timer)
 local function updateStatus()
@@ -121,17 +132,6 @@ client:on("ready", function()
         client:setActivity()
     end)()
 end)
-
--- Not 100% sure if this is necessary
-local function fixname(name)
-    local nterm = name:find('\000')
-
-    if nterm then
-        name = name:sub(1, nterm-1)
-    end
-
-    return name
-end
 
 local function joinnames(names, verb)
     if #names == 0 then return "No one is "..verb end
