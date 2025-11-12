@@ -3,6 +3,7 @@ local STATUS_EMPTY = "an empty map" -- Watches an empty map
 local STATUS_ERROR = "until you'll help me"
 local STATUS_GAMEMODE = os.getenv("SRB2KART_STATUS_GAMEMODE") -- If nil, chooses between "race" or "battle"
 local SLASHPLAYERS_GAMEMODE = os.getenv("SRB2KART_SLASHPLAYERS_GAMEMODE") -- If nil, chooses between "racing" or "battling"
+local SEED_PLAYER = os.getenv("SRB2KART_SEEDPLAYER") -- If there is only one player with this name on server, don't count them in status
 
 local STATUS_UPDATE_INTERVAL = 5*1000
 
@@ -54,6 +55,15 @@ local function updateStatus()
     server:askInfo()
 
     local numplayers = server.serverinfo.numplayers
+
+    if numplayers > 0 and SEED_PLAYER then
+        for _, p in ipairs(server.playerinfo) do
+            if fixname(p.name) == SEED_PLAYER then
+                numplayers = numplayers - 1
+                break
+            end
+        end
+    end
 
     if server:isInfoExpired() then
         client:setStatus(discordia.enums.status.doNotDisturb)

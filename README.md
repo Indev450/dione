@@ -39,3 +39,5 @@ DISCORD_TOKEN=<your token> SRB2KART_ADDRESS=<ip:port of server> SRB2KART_PROTO=<
 
 `SRB2KART_GAMEMODEFILE` - optional, path to file which would be read to fetch server gamemodes. File should store each gamemode on new line. If this
 variable is not found, /gamemode command will not be available
+
+`SRB2KART_SEEDPLAYER` - optional, don't count player with that name in status
