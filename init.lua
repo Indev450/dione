@@ -4,6 +4,10 @@ local STATUS_ERROR = "until you'll help me"
 local STATUS_GAMEMODE = os.getenv("SRB2KART_STATUS_GAMEMODE") -- If nil, chooses between "race" or "battle"
 local SLASHPLAYERS_GAMEMODE = os.getenv("SRB2KART_SLASHPLAYERS_GAMEMODE") -- If nil, chooses between "racing" or "battling"
 local SEED_PLAYER = os.getenv("SRB2KART_SEEDPLAYER") -- If there is only one player with this name on server, don't count them in status
+local COMMAND_PREFIX = os.getenv("DISCORD_CMDPREFIX") or ""
+
+local CMD_PLAYERS = COMMAND_PREFIX.."players"
+local CMD_GAMEMODE = COMMAND_PREFIX.."gamemode"
 
 local STATUS_UPDATE_INTERVAL = 5*1000
 
@@ -119,10 +123,10 @@ client:on("ready", function()
     end
 
     -- Is it fine that i create those each restart?
-    registerCmd("players", "Get player info")
+    registerCmd(CMD_PLAYERS, "Get player info")
 
     if server.gamemodefile ~= nil then
-        registerCmd("gamemode", "Get current gamemode")
+        registerCmd(CMD_GAMEMODE, "Get current gamemode")
     end
 
     deleteUnsupportedCommands(supported)
@@ -151,7 +155,7 @@ client:on("slashCommand", function(ia, cmd, args)
         return
     end
 
-    if cmd.name == "players" then
+    if cmd.name == CMD_PLAYERS then
         local playing = {}
         local spec = {}
         local resp = ""
@@ -190,7 +194,7 @@ client:on("slashCommand", function(ia, cmd, args)
         end
 
         ia:reply(resp)
-    elseif cmd.name == "gamemode" then
+    elseif cmd.name == CMD_GAMEMODE then
         local gamemodes = server:getGamemodes()
 
         if gamemodes == nil then
