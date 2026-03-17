@@ -8,5 +8,6 @@ addProtocol("srb2kart-16p")
 addProtocol("saturn-32p")
 addProtocol("saturn-126p")
 addProtocol("ringracers-16p")
+addProtocol("blankart")
 
 return protocols
