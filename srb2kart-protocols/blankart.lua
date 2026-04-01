@@ -9,9 +9,9 @@ function Protocol:initialize(socket, server)
     BaseProtocol.initialize(self, socket, server)
 
     -- Packet types
-    self.PT_ASKINFO = 9
-    self.PT_SERVERINFO = 10
-    self.PT_PLAYERINFO = 11
+    self.PT_ASKINFO = 12
+    self.PT_SERVERINFO = 13
+    self.PT_PLAYERINFO = 14
 
     -- Number of players supported by server
     self.MAXPLAYERS = 32 -- Game sends MSCOMPAT_MAXPLAYERS players, which is 32
