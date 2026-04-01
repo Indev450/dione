@@ -39,8 +39,8 @@ function Protocol:initialize(socket, server)
         { "xx", "padding", },
 
         { "c16", "application", },
-        --{ "I1", "version", },
-        --{ "I1", "subversion", },
+        { "I1", "version", },
+        { "I1", "subversion", },
         { "c4", "commit" },
 	
         { "I1", "numplayers", },
